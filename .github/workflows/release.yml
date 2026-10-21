@@ -1,0 +1,90 @@
+name: Build and release
+
+on:
+  push:
+    tags:
+      - 'V*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.runtime }}
+    runs-on: windows-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x64, win-arm64]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Set up Node.js
+        if: matrix.runtime == 'win-x64'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run integration and Worker tests
+        if: matrix.runtime == 'win-x64'
+        run: ./test.ps1
+
+      - name: Publish self-contained application
+        run: ./build.ps1 -Runtime '${{ matrix.runtime }}'
+
+      - name: Smoke test published application
+        if: matrix.runtime == 'win-x64'
+        run: ./tests/SmokePublish.ps1 -Package ./artifacts/win-x64
+
+      - name: Create ZIP package
+        run: |
+          Compress-Archive -Path './artifacts/${{ matrix.runtime }}/*' -DestinationPath './artifacts/OsuSpectatorRelay-${{ matrix.runtime }}.zip'
+
+      - name: Upload ZIP package
+        uses: actions/upload-artifact@v4
+        with:
+          name: OsuSpectatorRelay-${{ matrix.runtime }}
+          path: artifacts/OsuSpectatorRelay-${{ matrix.runtime }}.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Download ZIP packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: OsuSpectatorRelay-*
+          path: packages
+          merge-multiple: true
+
+      - name: Create release and upload packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" packages/*.zip --clobber
+          else
+            gh release create "$RELEASE_TAG" packages/*.zip --verify-tag --title "$RELEASE_TAG" --generate-notes
+          fi
