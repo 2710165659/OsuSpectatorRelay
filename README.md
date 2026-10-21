@@ -131,7 +131,7 @@ Worker 明确报告上游错误且现用入口复测正常时，保留 CF IP。�
 安装 .NET 8 SDK 后，在 PowerShell 构建：
 
 ```powershell
-& 'E:\MyCodes\c#\OsuSpectatorRelay\build.ps1'
+.\build.ps1
 ```
 
 默认覆盖 `artifacts/win-x64` 的程序及附带文件，保留已有 `config.json` 和运行数据。发布使用运行库裁剪和单文件压缩，仍自带运行时，可直接运行。ARM64 使用 `-Runtime win-arm64`；依赖系统 .NET 的发布使用 `-FrameworkDependent`。
@@ -139,7 +139,7 @@ Worker 明确报告上游错误且现用入口复测正常时，保留 CF IP。�
 安装 Node.js 后可运行完整测试：
 
 ```powershell
-& 'E:\MyCodes\c#\OsuSpectatorRelay\test.ps1'
+.\test.ps1
 ```
 
 测试使用本机临时端口、测试证书、模拟上游及专用测试进程，覆盖分流、重试、HTTP 探测、WebSocket 转发、缓存、IPC 和游戏退出回收。真实 Cloudflare 部署及游戏内连接仍需实机验证。
