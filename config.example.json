@@ -1,0 +1,20 @@
+{
+  "osuPath": "",
+  "osuArguments": [],
+  "workerUrl": "https://your-worker.example.workers.dev",
+  "sharedSecret": "",
+  "listenPort": 17890,
+  "workerHosts": ["spectator.osu.ppy.sh"],
+  "routeAllThroughWorker": false,
+  "autoGenerateCandidates": true,
+  "enableIpv6Candidates": false,
+  "preferredIps": [],
+  "probeIntervalSeconds": 300,
+  "connectTimeoutSeconds": 8,
+  "retryAttempts": 3,
+  "retryDelayMilliseconds": 500,
+  "connectionBudgetSeconds": 25,
+  "idleExitSeconds": 180,
+  "enableWpad": false,
+  "checkBeforeLaunch": true
+}

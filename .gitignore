@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+artifacts/
+config.json
+runtime/
+*.user
+.vs/
+worker/.dev.vars
+worker/.wrangler/
